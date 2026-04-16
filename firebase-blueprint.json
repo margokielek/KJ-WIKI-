@@ -1,0 +1,95 @@
+{
+  "entities": {
+    "lesson": {
+      "title": "Lesson",
+      "description": "A horse riding lesson reservation",
+      "type": "object",
+      "properties": {
+        "instructorId": { "type": "string" },
+        "riderId": { "type": "string" },
+        "riderName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "duration": { "type": "number" },
+        "type": { "type": "string", "enum": ["individual", "group", "badge-prep"] },
+        "status": { "type": "string", "enum": ["scheduled", "completed", "cancelled"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["instructorId", "riderId", "date", "time", "type", "status"]
+    },
+    "news": {
+      "title": "News Item",
+      "description": "A news post or event announcement",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "image": { "type": "string" },
+        "category": { "type": "string", "enum": ["news", "event", "badge"] }
+      },
+      "required": ["title", "content", "date", "category"]
+    },
+    "progress": {
+      "title": "Rider Progress",
+      "description": "Skills and badges for a specific rider",
+      "type": "object",
+      "properties": {
+        "riderId": { "type": "string" },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "level": { "type": "number" },
+              "lastUpdated": { "type": "string" }
+            }
+          }
+        },
+        "badges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "date": { "type": "string" },
+              "status": { "type": "string", "enum": ["earned", "preparing"] }
+            }
+          }
+        }
+      },
+      "required": ["riderId"]
+    },
+    "message": {
+      "title": "Message",
+      "description": "A message between a rider and an instructor",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["senderId", "receiverId", "text", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/lessons/{lessonId}": {
+      "schema": "lesson",
+      "description": "Collection of all lesson reservations"
+    },
+    "/news/{newsId}": {
+      "schema": "news",
+      "description": "Collection of news and events"
+    },
+    "/progress/{riderId}": {
+      "schema": "progress",
+      "description": "Progress data for each rider"
+    },
+    "/messages/{messageId}": {
+      "schema": "message",
+      "description": "Direct messages"
+    }
+  }
+}

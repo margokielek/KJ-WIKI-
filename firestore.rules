@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: lessons
+    // Fields: instructorId, riderId, riderName, date, time, duration, type, status, notes
+    //
+    // Collection: news
+    // Fields: title, content, date, image, category
+    //
+    // Collection: progress
+    // Fields: riderId, skills (array), badges (array)
+    //
+    // Collection: messages
+    // Fields: senderId, receiverId, text, timestamp
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         request.auth.token.email == "magorzata.kielek@gmail.com");
+    }
+
+    function isValidLesson(data) {
+      return data.instructorId is string &&
+             data.riderId is string &&
+             data.date is string &&
+             data.time is string &&
+             data.type in ['individual', 'group', 'badge-prep'] &&
+             data.status in ['scheduled', 'completed', 'cancelled'];
+    }
+
+    // Rules
+    
+    match /lessons/{lessonId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.riderId || isAdmin());
+      allow create: if isAuthenticated() && isValidLesson(request.resource.data) && (request.auth.uid == request.resource.data.riderId || isAdmin());
+      allow update: if isAuthenticated() && isValidLesson(request.resource.data) && (request.auth.uid == resource.data.riderId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    match /news/{newsId} {
+      allow read: if true; // Public news
+      allow write: if isAdmin();
+    }
+
+    match /progress/{riderId} {
+      allow read: if isAuthenticated() && (request.auth.uid == riderId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /messages/{messageId} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId);
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.senderId;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+  }
+}
