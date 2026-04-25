@@ -1,12 +1,3 @@
-steps:
-  # 1. Instalacja zależności
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['install']
-
-  # 2. Budowanie aplikacji (np. Next.js, Vite, Node)
-  - name: 'gcr.io/cloud-builders/npm'
-    args: ['run', 'build']
-
   # 3. Wdrożenie do Cloud Run ze źródła
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
