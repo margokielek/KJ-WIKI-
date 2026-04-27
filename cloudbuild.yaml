@@ -1,4 +1,27 @@
-steps:
+steps:steps:
+  # 1. Budowanie aplikacji Node.js
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kj-wiki/app-image', '.']
+
+  # 2. Budowanie Nginxa (używa osobnego pliku Dockerfile.nginx)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-f', 'Dockerfile.nginx', '-t', 'europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kj-wiki/nginx-image', '.']
+
+  # 3. Wypchnięcie obrazów do rejestru
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', 'europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kj-wiki']
+
+  # 4. Aktualizacja usługi Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'services', 'update', 'klub-je-dziecki-wiki',
+        '--region', 'europe-west2',
+        '--container', 'app-container', '--image', 'europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kj-wiki/app-image',
+        '--container', 'nginx-container', '--image', 'europe-west2-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/kj-wiki/nginx-image'
+      ]
+
   # 1. Budowanie obrazu przy użyciu buildpacks
   - name: gcr.io/k8s-skaffold/pack
     args:
